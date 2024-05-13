@@ -3,7 +3,7 @@ using E_Commerce.Models;
 
 namespace E_Commerce.Services
 {
-    public class ConvertFromProductToDTO
+    public static class ConvertFromProductToDTO
     {
         public static ProductDTO Convert(Product product)
         {

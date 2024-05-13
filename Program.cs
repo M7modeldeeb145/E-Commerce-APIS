@@ -29,6 +29,7 @@ namespace E_Commerce
             builder.Services.AddScoped<IProduct,ProductRepository>();
             builder.Services.AddScoped<ICategory,CategoryRepository>();
             builder.Services.AddScoped<IContactUs,ContactUsRepository>();
+            builder.Services.AddScoped<IUser,UserRepository>();
 
 
             //builder.Services.AddIdentity<ApplicationUser, IdentityRole>()

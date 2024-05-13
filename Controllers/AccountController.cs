@@ -1,5 +1,7 @@
 ﻿using E_Commerce.DTO;
+using E_Commerce.IRepository;
 using E_Commerce.Models;
+using E_Commerce.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +14,13 @@ namespace E_Commerce.Controllers
     {
         UserManager<ApplicationUser> userManager;
         SignInManager<ApplicationUser> signInManager;
-        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        IUser repository;
+
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IUser repository)
         {
             this.userManager = userManager;
             this.signInManager = signInManager;
-
+            this.repository = repository;
         }
         [HttpPost]
         [Route("RegisterUser")]
@@ -69,6 +73,58 @@ namespace E_Commerce.Controllers
         {
             await signInManager.SignOutAsync();
             return new OkObjectResult("User LoggedOut Successfully");
+        }
+        [HttpGet]
+        [Route("Get Account Details")]
+        public async Task<IActionResult> Get()
+        {
+            var result = await userManager.GetUserAsync(User);
+            if (result != null)
+            {
+                return Ok(result);
+            }
+            return new BadRequestObjectResult("Please Login First");
+        }
+        [HttpPost]
+        [Route("UpdateUser")]
+        public async Task<IActionResult> UpdateUser(ApplicationUserDTO updatedUser)
+        {
+            if (ModelState.IsValid)
+            {
+                var existingUser = await userManager.FindByEmailAsync(updatedUser.Email);
+                if (existingUser != null)
+                {
+                    // Update user properties
+                    existingUser.FirstName = updatedUser.FirstName;
+                    existingUser.LastName = updatedUser.LastName;
+
+                    // Update user in the database
+                    var result = await userManager.UpdateAsync(existingUser);
+                    if (result.Succeeded)
+                    {
+                        return new OkObjectResult("User information updated successfully");
+                    }
+                    else
+                    {
+                        return new BadRequestObjectResult("Failed to update user information");
+                    }
+                }
+                else
+                {
+                    return new BadRequestObjectResult("User not found");
+                }
+            }
+            else
+            {
+                return BadRequest(ModelState);
+            }
+        }
+        [HttpGet]
+        [Route("Get All Users")]
+        public IActionResult GetAll()
+        {
+            var users = repository.GetAll();
+            return Ok(users);
         }
     }
 }

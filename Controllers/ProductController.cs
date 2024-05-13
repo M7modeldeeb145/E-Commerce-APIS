@@ -2,6 +2,7 @@
 using E_Commerce.IRepository;
 using E_Commerce.Models;
 using E_Commerce.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace E_Commerce.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ProductController : ControllerBase
     {
         IProduct repository;
@@ -18,6 +20,7 @@ namespace E_Commerce.Controllers
         }
         [HttpGet]
         [Route("Get All Products")]
+        [AllowAnonymous]
         public IActionResult GetAll()
         {
             var products = repository.GetAll();
@@ -25,6 +28,7 @@ namespace E_Commerce.Controllers
         }
         [HttpGet]
         [Route("Get Product By Id")]
+        [AllowAnonymous]
         public IActionResult Get(int id)
         {
             var product = repository.GetById(id);
@@ -36,6 +40,7 @@ namespace E_Commerce.Controllers
         }
         [HttpGet]
         [Route("Search")]
+        [AllowAnonymous]
         public IActionResult Search(string keyword)
         {
             var search = repository.Search(keyword);
@@ -55,7 +60,7 @@ namespace E_Commerce.Controllers
                 repository.Delete(id); 
                 return Ok(ConvertFromProductToDTO.Convert(product));
             }
-            return BadRequest();
+            return new BadRequestObjectResult("No Matching Product");
         }
         [HttpPost]
         [Route("Create New Product")]
@@ -72,8 +77,14 @@ namespace E_Commerce.Controllers
                     Price = productDTO.Price,
                     Description = productDTO.Description
                 };
+                List<string> productImages = new List<string>();
+                foreach (var item in prod.ProductImages)
+                {
+                    productImages.Add(item.ImageUrl);
+                }
+                productDTO.ProductImages.AddRange(productImages);
                 repository.Create(prod);
-                return Ok(prod);
+                return Ok(ConvertFromProductToDTO.Convert(prod));
             }
             return BadRequest();
         }
